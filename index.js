@@ -1,6 +1,8 @@
 import secureRandom from "secure-random";
 import crypto from "crypto";
 import readline from "readline";
+import chalk from "chalk";
+import { printTable } from "console-table-printer";
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -8,7 +10,7 @@ const rl = readline.createInterface({
 });
 
 // Start message
-const msg = "\n\x1b[32mLet's start the game\x1b[0m";
+const msg = "\nLet's start the game";
 
 class ComputeWinner {
   constructor(array, user) {
@@ -67,10 +69,25 @@ class Menu {
       rows.push(`${index + 1} - ${el}\n`);
     });
     return (
-      "\x1b[36mAvailable moves:\x1b[0m\n\x1b[32m" +
-      rows.join("") +
-      "0 - exit\n? - help\x1b[0m\n"
+      chalk.blue("Available moves:\n") +
+      chalk.green(rows.join("")) +
+      chalk.green("0 - exit\n? - help\n")
     );
+  }
+}
+
+// create Table
+class Table {
+  constructor(arr) {
+    this.arr = arr;
+  }
+  getTable() {
+    const rules = new GameRules(this.arr);
+    const tableFirstColumn = Object.keys(rules);
+    const tableRows = Object.values(rules);
+    return tableRows.map((row, index) => {
+      return { move: tableFirstColumn[index], ...row };
+    });
   }
 }
 
@@ -84,14 +101,14 @@ const moveComputer = (arr) => {
 // Main function Game
 const game = (arr) => {
   // Start message
-  console.log(msg);
+  console.log(chalk.green(msg));
   // Create key
   const bytes = secureRandom.randomBuffer(32);
   // Computer move
   const computerMove = moveComputer(arr);
   const hmacObj = new HMAC(bytes, computerMove);
   const hmac = hmacObj.createHMAC();
-  const msgHMAC = `\x1b[35mHMAC:\x1b[1m\n${hmac}\n`;
+  const msgHMAC = chalk.magenta(`HMAC:\n${hmac}\n`);
   const menu = new Menu(arr);
   const msgMenu = menu.createMenu();
 
@@ -103,7 +120,8 @@ const game = (arr) => {
       rl.close();
     } else if (input === "?") {
       // Help
-      console.table(new GameRules(arr));
+      const table = new Table(arr);
+      printTable(table.getTable());
       game(arr);
     } else if (
       Math.round(input) === +input &&
@@ -126,7 +144,7 @@ const game = (arr) => {
       game(arr);
     } else {
       // Incorrect move
-      console.log("\x1b[31mSorry...incorrect choice,please try again\x1b[0m");
+      console.log(chalk.red("Sorry...incorrect choice,please try again"));
       game(arr);
     }
   });
@@ -136,14 +154,22 @@ const game = (arr) => {
 const isShort = process.argv.length < 5;
 const isEven = !(process.argv.length % 2);
 const isUnic = new Set(process.argv).size !== process.argv.length;
-const msgEven =
-  "\n\x1b[31mCould you please enter correct input. You need to pass an odd number of strings.\x1b[0m\n";
+const msgEven = chalk.red(
+  "\nCould you please enter correct input. You need to pass an odd number of strings.\n"
+);
 const example =
-  "\nFor example:\n\x1b[32mRock Paper Scissors\x1b[0m or \x1b[32mRock Paper Scissors Lizard Spock\x1b[0m or \x1b[32m1 2 3 4 5 6 7 8 9\x1b[0m\n";
-const msgShort =
-  "\n\x1b[31mCould you please enter correct input. You need to pass more than 3 strings.\x1b[0m\n";
-const msgUnic =
-  "\n\x1b[31mCould you please enter correct input. You need to pass different strings.\x1b[0m\n";
+  "\nFor example:\n" +
+  chalk.green("Rock Paper Scissors") +
+  " or " +
+  chalk.green("Rock Paper Scissors Lizard Spock") +
+  " or " +
+  chalk.green("1 2 3 4 5 6 7 8 9\n");
+const msgShort = chalk.red(
+  "\nCould you please enter correct input. You need to pass more than 3 strings.\n"
+);
+const msgUnic = chalk.red(
+  "\nCould you please enter correct input. You need to pass different strings.\n"
+);
 
 const isError = isShort
   ? msgShort + example

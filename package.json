@@ -10,6 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "chalk": "^5.2.0",
+    "console-table-printer": "^2.11.1",
+    "console.table": "^0.10.0",
     "secure-random": "^1.1.2"
   }
 }
